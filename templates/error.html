@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if error_code %}
+        {{ error_code }} - {{ title }}
+    {% else %}
+        Error - Agri-Auction
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="error-container mb-4">
+                {% if error_code == 404 %}
+                <svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-map">
+                    <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+                    <line x1="8" y1="2" x2="8" y2="18"></line>
+                    <line x1="16" y1="6" x2="16" y2="22"></line>
+                </svg>
+                {% elif error_code == 500 %}
+                <svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-settings">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+                {% else %}
+                <svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-triangle">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                {% endif %}
+            </div>
+            
+            <h1 class="display-4 mb-4">
+                {% if error_code %}
+                    {{ error_code }}
+                {% else %}
+                    Oops!
+                {% endif %}
+            </h1>
+            
+            <h3 class="mb-4">
+                {% if error_message %}
+                    {{ error_message }}
+                {% elif error_code == 404 %}
+                    The page you're looking for doesn't exist.
+                {% elif error_code == 500 %}
+                    Something went wrong on our end. Please try again later.
+                {% else %}
+                    An unexpected error occurred.
+                {% endif %}
+            </h3>
+            
+            <p class="lead mb-5">
+                Let's get you back on track. You can return to our homepage or try searching for what you need.
+            </p>
+            
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-home me-2"></i> Go Home
+                </a>
+                <a href="{{ url_for('auctions') }}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-search me-2"></i> Browse Auctions
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    {% if error_code == 404 %}
+    <div class="row mt-5">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h4>You might be interested in</h4>
+                    <div class="row mt-3">
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <i class="fas fa-carrot fa-3x text-primary mb-3"></i>
+                                <h5>Browse Categories</h5>
+                                <p>Find products by type</p>
+                                <a href="{{ url_for('auctions') }}" class="btn btn-sm btn-outline-primary">View Categories</a>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <i class="fas fa-user-plus fa-3x text-primary mb-3"></i>
+                                <h5>Create Account</h5>
+                                <p>Join our community</p>
+                                <a href="{{ url_for('register') }}" class="btn btn-sm btn-outline-primary">Register</a>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <i class="fas fa-tractor fa-3x text-primary mb-3"></i>
+                                <h5>Farmer Resources</h5>
+                                <p>Learn how to sell</p>
+                                <a href="{{ url_for('index') }}" class="btn btn-sm btn-outline-primary">Learn More</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

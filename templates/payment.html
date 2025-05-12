@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Payment - Agri-Auction{% endblock %}
+
+{% block head %}
+{% if razorpay_order_id %}
+<!-- Include Razorpay Checkout JS -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+{% endif %}
+{% if stripe_session_id %}
+<!-- Include Stripe Checkout JS -->
+<script src="https://js.stripe.com/v3/"></script>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Complete Your Payment</h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="payment-summary mb-4">
+                        <h5>Order Summary</h5>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <p><strong>Auction:</strong> {{ auction.title }}</p>
+                                <p><strong>Product:</strong> {{ auction.product.name }}</p>
+                                <p><strong>Quantity:</strong> {{ auction.quantity }} {{ auction.unit }}</p>
+                                <p><strong>Seller:</strong> {{ auction.owner.username }}</p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <p class="payment-total">{{ auction.current_price|currency }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if razorpay_order_id %}
+                        <div class="text-center my-4">
+                            <button id="razorpay-button" class="btn btn-primary btn-lg">
+                                Pay with Razorpay
+                            </button>
+                        </div>
+                        
+                        <div class="alert alert-info" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Click the button above to complete your payment securely via Razorpay.
+                            Razorpay supports various payment methods including credit/debit cards, UPI, wallets, and netbanking.
+                        </div>
+                        
+                        <form id="payment-callback-form" method="POST" action="{{ url_for('payment_callback') }}">
+                            <input type="hidden" name="transaction_id" value="{{ transaction_id }}">
+                            <!-- Fields to be filled by Razorpay callback -->
+                            <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+                            <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+                            <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+                        </form>
+                    {% elif stripe_checkout_url %}
+                        <div class="text-center my-4">
+                            <a href="{{ stripe_checkout_url }}" id="stripe-button" class="btn btn-primary btn-lg">
+                                Pay with Stripe
+                            </a>
+                        </div>
+                        
+                        <div class="alert alert-info" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Click the button above to complete your payment securely via Stripe.
+                            You will be redirected to Stripe's secure payment page where you can pay using international credit/debit cards.
+                        </div>
+                    {% else %}
+                        <form method="POST" action="{{ url_for('payment', auction_id=auction.id) }}">
+                            {{ form.hidden_tag() }}
+                            
+                            <h5 class="mb-3">Payment Method</h5>
+                            <div class="mb-3">
+                                {% for subfield in form.payment_method %}
+                                <div class="form-check">
+                                    {{ subfield(class="form-check-input") }}
+                                    {{ subfield.label(class="form-check-label") }}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="d-grid gap-2 mt-4">
+                                {{ form.submit(class="btn btn-primary btn-lg") }}
+                            </div>
+                        </form>
+                    {% endif %}
+                    
+                    <div class="mt-3 text-center text-muted">
+                        <small>
+                            <i class="fas fa-lock me-1"></i> Your payment information is secure. We use encryption to protect your data.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if razorpay_order_id %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Razorpay checkout
+        var options = {
+            "key": "{{ razorpay_key_id }}",
+            "amount": "{{ razorpay_amount }}",
+            "currency": "{{ razorpay_currency }}",
+            "name": "{{ razorpay_name }}",
+            "description": "{{ razorpay_description }}",
+            "order_id": "{{ razorpay_order_id }}",
+            "image": "{{ razorpay_image }}",
+            "prefill": {
+                "name": "{{ razorpay_prefill_name }}",
+                "email": "{{ razorpay_prefill_email }}",
+                "contact": "{{ razorpay_prefill_contact }}"
+            },
+            "theme": {
+                "color": "#3399cc"
+            },
+            "handler": function (response) {
+                document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+                document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
+                document.getElementById('razorpay_signature').value = response.razorpay_signature;
+                document.getElementById('payment-callback-form').submit();
+            }
+        };
+        var rzp = new Razorpay(options);
+        
+        document.getElementById('razorpay-button').onclick = function(e) {
+            rzp.open();
+            e.preventDefault();
+        };
+    });
+</script>
+{% endif %}
+
+{% if stripe_session_id %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Stripe checkout is handled through redirect to the Stripe hosted checkout page
+        // This is a simpler, more secure approach that doesn't require handling the payment
+        // details on our server
+        
+        // Optionally, you could use the Stripe JS SDK to redirect programmatically:
+        // const stripe = Stripe('{{ stripe_publishable_key }}');
+        // document.getElementById('stripe-button').addEventListener('click', function(e) {
+        //     e.preventDefault();
+        //     stripe.redirectToCheckout({
+        //         sessionId: '{{ stripe_session_id }}'
+        //     }).then(function (result) {
+        //         if (result.error) {
+        //             alert(result.error.message);
+        //         }
+        //     });
+        // });
+    });
+</script>
+{% endif %}
+{% endblock %}

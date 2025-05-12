@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}{{ auction.title }} - Agri-Auction{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Auction Details -->
+        <div class="col-md-8">
+            <div class="card shadow mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0">{{ auction.title }}</h2>
+                    <span class="badge bg-{{ 'success' if auction.is_active else 'secondary' }}">
+                        {{ 'Active' if auction.is_active else 'Ended' }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <img src="{{ auction.image_url or 'https://via.placeholder.com/400x300?text=No+Image+Available' }}" 
+                                 class="img-fluid rounded auction-image" alt="{{ auction.title }}">
+                        </div>
+                        <div class="col-md-6">
+                            <h4 class="mb-3">Details</h4>
+                            <p><strong>Product:</strong> {{ auction.product.name }}</p>
+                            <p><strong>Category:</strong> {{ auction.product.category }}</p>
+                            <p><strong>Quantity:</strong> {{ auction.quantity }} {{ auction.unit }}</p>
+                            <p><strong>Seller:</strong> {{ auction.owner.username }}</p>
+                            <p><strong>Base Price:</strong> {{ auction.base_price|currency }}</p>
+                            <p><strong>Current Price:</strong> <span id="current-price">{{ auction.current_price|currency }}</span></p>
+                            <p>
+                                <strong>Status:</strong> 
+                                {% if auction.is_active %}
+                                <span class="text-success">Auction ending in <span class="countdown" data-end-time="{{ auction.end_time }}">...</span></span>
+                                {% else %}
+                                <span class="text-secondary">Auction ended</span>
+                                {% endif %}
+                            </p>
+                            <p><strong>Start Time:</strong> {{ auction.start_time|format_datetime }}</p>
+                            <p><strong>End Time:</strong> {{ auction.end_time|format_datetime }}</p>
+                            
+                            {% if auction.is_ended() and auction.winner_id %}
+                                <div class="alert alert-success">
+                                    <i class="fas fa-trophy me-2"></i> 
+                                    {% if auction.winner_id == current_user.id %}
+                                        Congratulations! You won this auction!
+                                        <a href="{{ url_for('payment', auction_id=auction.id) }}" class="btn btn-success btn-sm mt-2">Complete Payment</a>
+                                    {% else %}
+                                        Auction won by {{ auction.winner.username }}
+                                    {% endif %}
+                                </div>
+                            {% elif auction.is_ended() %}
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-circle me-2"></i> 
+                                    Auction ended with no bids.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <h4>Description</h4>
+                    <p>{{ auction.description or 'No description provided.' }}</p>
+                    
+                    <h4>Product Information</h4>
+                    <p>{{ auction.product.description or 'No product information provided.' }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bidding and History -->
+        <div class="col-md-4">
+            <!-- Bidding Form -->
+            {% if auction.is_active and current_user.is_authenticated and not current_user.is_farmer and current_user.id != auction.owner_id %}
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Place Your Bid</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Alert container for AJAX responses -->
+                    <div id="bid-alert"></div>
+                    
+                    <form id="bid-form">
+                        {{ form.hidden_tag() }}
+                        <input type="hidden" name="auction_id" id="auction_id" value="{{ auction.id }}">
+                        
+                        <div class="mb-3">
+                            {{ form.amount.label(class="form-label") }}
+                            {% if form.amount.errors %}
+                                {{ form.amount(class="form-control is-invalid", value=(auction.current_price + 1) if auction.current_price < 100 else (auction.current_price + 5)) }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.amount.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.amount(class="form-control", value=(auction.current_price + 1) if auction.current_price < 100 else (auction.current_price + 5)) }}
+                            {% endif %}
+                            <div class="form-text">
+                                Minimum bid: {{ (auction.current_price + 1)|currency if auction.current_price < 100 else (auction.current_price + 5)|currency }}
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" id="bid-button" class="btn btn-primary">Place Bid</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% elif not current_user.is_authenticated %}
+            <div class="card shadow mb-4">
+                <div class="card-body text-center">
+                    <p class="mb-3">Login to place bids on this auction</p>
+                    <a href="{{ url_for('login', next=request.url) }}" class="btn btn-primary">Login to Bid</a>
+                </div>
+            </div>
+            {% elif current_user.is_farmer %}
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle me-2"></i> Farmers cannot place bids. Please use a buyer account.
+                    </div>
+                </div>
+            </div>
+            {% elif current_user.id == auction.owner_id %}
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle me-2"></i> You cannot bid on your own auction.
+                    </div>
+                </div>
+            </div>
+            {% elif not auction.is_active %}
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <div class="alert alert-secondary mb-0">
+                        <i class="fas fa-clock me-2"></i> This auction has ended.
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Bid History -->
+            <div class="card shadow">
+                <div class="card-header bg-light">
+                    <h4 class="mb-0">Bid History</h4>
+                </div>
+                <div class="card-body">
+                    <div id="bid-history">
+                        {% if bid_history %}
+                            {% for bid in bid_history %}
+                            <div class="bid-item">
+                                <div class="bid-user">{{ bid.bidder.username }}</div>
+                                <div class="bid-amount">{{ bid.amount|currency }}</div>
+                                <div class="bid-time">{{ bid.created_at|format_datetime }}</div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center text-muted">
+                                <p>No bids yet. Be the first to bid!</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Related Auctions -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3>Similar Auctions</h3>
+            <hr>
+        </div>
+        
+        <!-- This would be populated with actual related auctions in a full implementation -->
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i> Related auctions feature will be available soon.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Document loaded event already registers all event handlers in auction.js
+    // Add a special indicator to show real-time status
+    document.addEventListener('DOMContentLoaded', function() {
+        const bidHistoryHeader = document.querySelector('.card-header.bg-light h4');
+        if (bidHistoryHeader) {
+            // Add a real-time indicator next to the bid history header
+            const statusIndicator = document.createElement('span');
+            statusIndicator.id = 'realtime-status';
+            statusIndicator.className = 'ms-2 badge bg-secondary';
+            statusIndicator.innerHTML = 'Connecting...';
+            bidHistoryHeader.appendChild(statusIndicator);
+            
+            // Update indicator when socket connects
+            if (typeof socket !== 'undefined') {
+                socket.on('connect', function() {
+                    const indicator = document.getElementById('realtime-status');
+                    if (indicator) {
+                        indicator.className = 'ms-2 badge bg-success';
+                        indicator.innerHTML = 'Live';
+                    }
+                });
+                
+                socket.on('disconnect', function() {
+                    const indicator = document.getElementById('realtime-status');
+                    if (indicator) {
+                        indicator.className = 'ms-2 badge bg-danger';
+                        indicator.innerHTML = 'Offline';
+                    }
+                });
+            }
+        }
+    });
+</script>
+{% endblock %}

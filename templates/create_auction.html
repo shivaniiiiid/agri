@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if is_product_form %}
+        Add Product - Agri-Auction
+    {% else %}
+        Create Auction - Agri-Auction
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        {% if is_product_form %}
+                            Add New Product
+                        {% else %}
+                            Create New Auction
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    {% if is_product_form %}
+                        <!-- Product Form -->
+                        <form method="POST" action="{{ url_for('add_product') }}">
+                            {{ form.hidden_tag() }}
+                            
+                            <div class="mb-3">
+                                {{ form.name.label(class="form-label") }}
+                                {% if form.name.errors %}
+                                    {{ form.name(class="form-control is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.name.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.name(class="form-control") }}
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.category.label(class="form-label") }}
+                                {% if form.category.errors %}
+                                    {{ form.category(class="form-select is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.category.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.category(class="form-select") }}
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.description.label(class="form-label") }}
+                                {{ form.description(class="form-control", rows=4) }}
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                {{ form.submit(class="btn btn-primary") }}
+                            </div>
+                        </form>
+                    {% else %}
+                        <!-- Auction Form -->
+                        <form method="POST" action="{{ url_for('create_auction') }}">
+                            {{ form.hidden_tag() }}
+                            
+                            <div class="mb-3">
+                                {{ form.title.label(class="form-label") }}
+                                {% if form.title.errors %}
+                                    {{ form.title(class="form-control is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.title.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.title(class="form-control") }}
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.product_id.label(class="form-label") }}
+                                {% if form.product_id.errors %}
+                                    {{ form.product_id(class="form-select is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.product_id.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.product_id(class="form-select") }}
+                                {% endif %}
+                                <div class="form-text">
+                                    Don't see your product? <a href="{{ url_for('add_product') }}">Add a new product</a>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.description.label(class="form-label") }}
+                                {{ form.description(class="form-control", rows=4) }}
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ form.quantity.label(class="form-label") }}
+                                    {% if form.quantity.errors %}
+                                        {{ form.quantity(class="form-control is-invalid") }}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.quantity.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        {{ form.quantity(class="form-control") }}
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    {{ form.unit.label(class="form-label") }}
+                                    {% if form.unit.errors %}
+                                        {{ form.unit(class="form-select is-invalid") }}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.unit.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        {{ form.unit(class="form-select") }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ form.base_price.label(class="form-label") }}
+                                    {% if form.base_price.errors %}
+                                        {{ form.base_price(class="form-control is-invalid") }}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.base_price.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        {{ form.base_price(class="form-control") }}
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    {{ form.end_time.label(class="form-label") }}
+                                    {% if form.end_time.errors %}
+                                        {{ form.end_time(class="form-control is-invalid") }}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.end_time.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        {{ form.end_time(class="form-control") }}
+                                    {% endif %}
+                                    <div class="form-text">Format: YYYY-MM-DD HH:MM</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.image_url.label(class="form-label") }}
+                                {{ form.image_url(class="form-control") }}
+                                <div class="form-text">Enter a valid URL for your product image</div>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                {{ form.submit(class="btn btn-primary") }}
+                            </div>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

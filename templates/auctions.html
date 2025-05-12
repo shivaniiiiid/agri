@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Auctions - Agri-Auction{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Filters and Search -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form action="{{ url_for('auctions') }}" method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <label for="search" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="search" name="search" placeholder="Search auctions..." value="{{ search or '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="category" class="form-label">Category</label>
+                    <select class="form-select" id="category" name="category">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                        <option value="{{ category }}" {{ 'selected' if category == selected_category else '' }}>{{ category|capitalize }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="sort" class="form-label">Sort By</label>
+                    <select class="form-select" id="sort" name="sort">
+                        <option value="latest" {{ 'selected' if sort == 'latest' else '' }}>Latest</option>
+                        <option value="price_low" {{ 'selected' if sort == 'price_low' else '' }}>Price (Low to High)</option>
+                        <option value="price_high" {{ 'selected' if sort == 'price_high' else '' }}>Price (High to Low)</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Apply</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Results -->
+    <div class="row">
+        {% if auctions %}
+            {% for auction in auctions %}
+            <div class="col-md-4 mb-4">
+                <div class="card auction-card h-100">
+                    <img src="{{ auction.image_url or 'https://via.placeholder.com/400x300?text=No+Image+Available' }}" 
+                         class="card-img-top auction-image" alt="{{ auction.title }}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h5 class="card-title">{{ auction.title }}</h5>
+                            <span class="auction-category">{{ auction.product.category }}</span>
+                        </div>
+                        <p class="card-text">{{ auction.description|truncate(100) }}</p>
+                        <div class="auction-meta">
+                            <span>{{ auction.quantity }} {{ auction.unit }}</span>
+                            <span>{{ auction.owner.username }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="auction-price">{{ auction.current_price|currency }}</div>
+                            <div class="auction-time countdown" data-end-time="{{ auction.end_time }}">
+                                {{ (auction.end_time - now)|string }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white">
+                        <a href="{{ url_for('auction_detail', auction_id=auction.id) }}" class="btn btn-primary w-100">View Auction</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <h4 class="alert-heading">No auctions found!</h4>
+                    <p>There are no active auctions matching your search criteria.</p>
+                    {% if search or selected_category %}
+                    <hr>
+                    <p class="mb-0">Try adjusting your filters or <a href="{{ url_for('auctions') }}" class="alert-link">view all auctions</a>.</p>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Pagination - Placeholder for future implementation -->
+    <nav aria-label="Auction pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item disabled">
+                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+            </li>
+            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+            <li class="page-item disabled"><a class="page-link" href="#">Next</a></li>
+        </ul>
+    </nav>
+</div>
+{% endblock %}

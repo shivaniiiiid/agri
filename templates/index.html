@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Agri-Auction - Farm Fresh Products Directly from Source{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container text-center">
+        <h1 class="display-4">Farm Fresh Products Directly from Source</h1>
+        <p class="lead">Connecting farmers and buyers through a transparent auction platform</p>
+        <div class="mt-4">
+            <a href="{{ url_for('auctions') }}" class="btn btn-primary btn-lg me-2">Browse Auctions</a>
+            {% if current_user.is_authenticated and current_user.is_farmer %}
+            <a href="{{ url_for('create_auction') }}" class="btn btn-outline-light btn-lg">List Your Products</a>
+            {% elif not current_user.is_authenticated %}
+            <a href="{{ url_for('register') }}" class="btn btn-outline-light btn-lg">Register Now</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<div class="container">
+    <!-- Features Section -->
+    <section class="py-5">
+        <div class="row text-center">
+            <div class="col-md-4 mb-4">
+                <div class="p-4 bg-white rounded shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-users mb-3">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    <h3>Direct Connection</h3>
+                    <p>Connect directly with farmers and eliminate middlemen to get the best prices.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="p-4 bg-white rounded shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle mb-3">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    <h3>Quality Assurance</h3>
+                    <p>All products are verified and sourced directly from trusted farmers.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="p-4 bg-white rounded shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-dollar-sign mb-3">
+                        <line x1="12" y1="1" x2="12" y2="23"></line>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                    <h3>Transparent Pricing</h3>
+                    <p>Fair and transparent bidding system ensures the best price for buyers and sellers.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Auctions -->
+    <section class="py-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Featured Auctions</h2>
+            <a href="{{ url_for('auctions') }}" class="btn btn-outline-primary">View All</a>
+        </div>
+        
+        <div class="row">
+            {% if active_auctions %}
+                {% for auction in active_auctions %}
+                <div class="col-md-4 mb-4">
+                    <div class="card auction-card h-100">
+                        <img src="{{ auction.image_url or 'https://via.placeholder.com/400x300?text=No+Image+Available' }}" 
+                             class="card-img-top auction-image" alt="{{ auction.title }}">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <h5 class="card-title">{{ auction.title }}</h5>
+                                <span class="auction-category">{{ auction.product.category }}</span>
+                            </div>
+                            <p class="card-text">{{ auction.description|truncate(100) }}</p>
+                            <div class="auction-meta">
+                                <span>{{ auction.quantity }} {{ auction.unit }}</span>
+                                <span>{{ auction.owner.username }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="auction-price">{{ auction.current_price|currency }}</div>
+                                <div class="auction-time countdown" data-end-time="{{ auction.end_time }}">
+                                    {{ (auction.end_time - now)|string }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white">
+                            <a href="{{ url_for('auction_detail', auction_id=auction.id) }}" class="btn btn-primary w-100">View Auction</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12">
+                    <div class="alert alert-info" role="alert">
+                        No active auctions at the moment. Please check back later!
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Product Categories -->
+    <section class="py-5">
+        <h2 class="mb-4">Browse by Category</h2>
+        <div class="row">
+            {% if categories %}
+                {% for category in categories %}
+                <div class="col-md-3 col-6 mb-4">
+                    <a href="{{ url_for('auctions', category=category) }}" class="text-decoration-none">
+                        <div class="card text-center h-100">
+                            <div class="card-body">
+                                <div class="category-icon mb-3">
+                                    {% if category == 'fruits' %}
+                                    <i class="fas fa-apple-alt fa-3x text-primary"></i>
+                                    {% elif category == 'vegetables' %}
+                                    <i class="fas fa-carrot fa-3x text-primary"></i>
+                                    {% elif category == 'grains' %}
+                                    <i class="fas fa-seedling fa-3x text-primary"></i>
+                                    {% elif category == 'dairy' %}
+                                    <i class="fas fa-cheese fa-3x text-primary"></i>
+                                    {% elif category == 'livestock' %}
+                                    <i class="fas fa-horse fa-3x text-primary"></i>
+                                    {% elif category == 'seeds' %}
+                                    <i class="fas fa-leaf fa-3x text-primary"></i>
+                                    {% else %}
+                                    <i class="fas fa-tractor fa-3x text-primary"></i>
+                                    {% endif %}
+                                </div>
+                                <h5 class="card-title text-capitalize">{{ category }}</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12">
+                    <div class="alert alert-info" role="alert">
+                        No categories available at the moment.
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="py-5">
+        <h2 class="text-center mb-5">How It Works</h2>
+        <div class="row">
+            <div class="col-md-4 text-center mb-4">
+                <div class="bg-white p-4 rounded shadow-sm h-100">
+                    <div class="process-number mb-3">
+                        <span class="badge bg-primary rounded-circle p-3">1</span>
+                    </div>
+                    <h4>Register</h4>
+                    <p>Sign up as a farmer to list your products or as a buyer to bid on auctions.</p>
+                </div>
+            </div>
+            <div class="col-md-4 text-center mb-4">
+                <div class="bg-white p-4 rounded shadow-sm h-100">
+                    <div class="process-number mb-3">
+                        <span class="badge bg-primary rounded-circle p-3">2</span>
+                    </div>
+                    <h4>List or Bid</h4>
+                    <p>Farmers can list their products for auction, and buyers can place bids on items they want.</p>
+                </div>
+            </div>
+            <div class="col-md-4 text-center mb-4">
+                <div class="bg-white p-4 rounded shadow-sm h-100">
+                    <div class="process-number mb-3">
+                        <span class="badge bg-primary rounded-circle p-3">3</span>
+                    </div>
+                    <h4>Complete Transaction</h4>
+                    <p>When the auction ends, the highest bidder wins and completes the payment securely.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-5 text-center">
+        <div class="bg-primary text-white p-5 rounded">
+            <h2>Ready to Get Started?</h2>
+            <p class="lead">Join our growing community of farmers and buyers today!</p>
+            <div class="mt-4">
+                {% if not current_user.is_authenticated %}
+                <a href="{{ url_for('register') }}" class="btn btn-light btn-lg me-2">Register Now</a>
+                <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg">Login</a>
+                {% elif current_user.is_farmer %}
+                <a href="{{ url_for('create_auction') }}" class="btn btn-light btn-lg">Create an Auction</a>
+                {% else %}
+                <a href="{{ url_for('auctions') }}" class="btn btn-light btn-lg">Start Bidding</a>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

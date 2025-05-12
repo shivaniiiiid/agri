@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Agri-Auction{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Dashboard Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h2 class="mb-0"><i class="fas fa-tachometer-alt me-2"></i> Admin Dashboard</h2>
+                    <p class="text-muted">Welcome to the Agri-Auction administration dashboard. Manage users, auctions, and monitor platform activity.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="dashboard-card dashboard-card-primary h-100">
+                <h3>{{ total_users }}</h3>
+                <p>Total Users</p>
+                <i class="fas fa-users fa-2x opacity-25 position-absolute bottom-0 end-0 m-3"></i>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="dashboard-card dashboard-card-secondary h-100">
+                <h3>{{ total_auctions }}</h3>
+                <p>Total Auctions</p>
+                <i class="fas fa-gavel fa-2x opacity-25 position-absolute bottom-0 end-0 m-3"></i>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="dashboard-card dashboard-card-info h-100">
+                <h3>{{ active_auctions }}</h3>
+                <p>Active Auctions</p>
+                <i class="fas fa-clock fa-2x opacity-25 position-absolute bottom-0 end-0 m-3"></i>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="dashboard-card dashboard-card-success h-100">
+                <h3>{{ total_sales|currency }}</h3>
+                <p>Total Sales</p>
+                <i class="fas fa-dollar-sign fa-2x opacity-25 position-absolute bottom-0 end-0 m-3"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- More Stats in Detail -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card shadow h-100">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0">Platform Statistics</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="border rounded p-3">
+                                <h5>User Distribution</h5>
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <p class="mb-1">Farmers</p>
+                                        <h4>{{ total_farmers }}</h4>
+                                    </div>
+                                    <div>
+                                        <p class="mb-1">Buyers</p>
+                                        <h4>{{ total_buyers }}</h4>
+                                    </div>
+                                </div>
+                                <div class="progress mt-2">
+                                    {% set farmer_percentage = total_farmers / total_users * 100 if total_users > 0 else 0 %}
+                                    <div class="progress-bar bg-success" role="progressbar" 
+                                        style="width: {{ farmer_percentage }}%" 
+                                        aria-valuenow="{{ farmer_percentage }}" 
+                                        aria-valuemin="0" 
+                                        aria-valuemax="100">
+                                        {{ "%.1f"|format(farmer_percentage) }}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="border rounded p-3">
+                                <h5>Products & Bids</h5>
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <p class="mb-1">Products</p>
+                                        <h4>{{ total_products }}</h4>
+                                    </div>
+                                    <div>
+                                        <p class="mb-1">Bids</p>
+                                        <h4>{{ total_bids }}</h4>
+                                    </div>
+                                </div>
+                                <p class="text-muted mt-2 mb-0">
+                                    <small>Average {{ (total_bids / total_auctions)|round(1) if total_auctions > 0 else 0 }} bids per auction</small>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="border rounded p-3">
+                                <h5>Transactions</h5>
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <p class="mb-1">Completed</p>
+                                        <h4>{{ completed_transactions }}</h4>
+                                    </div>
+                                    <div>
+                                        <p class="mb-1">Average Sale</p>
+                                        <h4>{{ (total_sales / completed_transactions)|currency if completed_transactions > 0 else "$0.00" }}</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="border rounded p-3">
+                                <h5>Auction Statistics</h5>
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <p class="mb-1">Active</p>
+                                        <h4>{{ active_auctions }}</h4>
+                                    </div>
+                                    <div>
+                                        <p class="mb-1">Ended</p>
+                                        <h4>{{ total_auctions - active_auctions }}</h4>
+                                    </div>
+                                </div>
+                                <div class="progress mt-2">
+                                    {% set active_percentage = active_auctions / total_auctions * 100 if total_auctions > 0 else 0 %}
+                                    <div class="progress-bar bg-primary" role="progressbar" 
+                                        style="width: {{ active_percentage }}%" 
+                                        aria-valuenow="{{ active_percentage }}" 
+                                        aria-valuemin="0" 
+                                        aria-valuemax="100">
+                                        {{ "%.1f"|format(active_percentage) }}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0">Quick Actions</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-3">
+                        <a href="{{ url_for('admin.index') }}" class="btn btn-primary">
+                            <i class="fas fa-cog me-2"></i> Admin Panel
+                        </a>
+                        <a href="{{ url_for('user.index_view') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-users me-2"></i> Manage Users
+                        </a>
+                        <a href="{{ url_for('auction.index_view') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-gavel me-2"></i> Manage Auctions
+                        </a>
+                        <a href="{{ url_for('product.index_view') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-box me-2"></i> Manage Products
+                        </a>
+                        <a href="{{ url_for('transaction.index_view') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-exchange-alt me-2"></i> Manage Transactions
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0">Recent Users</h4>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for user in recent_users %}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">{{ user.username }}</h6>
+                                    <small class="text-muted">{{ user.email }}</small>
+                                </div>
+                                <span class="badge bg-{{ 'success' if user.is_farmer else 'info' }}">
+                                    {{ 'Farmer' if user.is_farmer else 'Buyer' }}
+                                </span>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="card-footer bg-white text-center">
+                    <a href="{{ url_for('user.index_view') }}" class="btn btn-sm btn-outline-primary">View All Users</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0">Recent Auctions</h4>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for auction in recent_auctions %}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">{{ auction.title }}</h6>
+                                    <small class="text-muted">by {{ auction.owner.username }}</small>
+                                </div>
+                                <span class="badge bg-{{ 'success' if auction.is_active else 'secondary' }}">
+                                    {{ auction.current_price|currency }}
+                                </span>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="card-footer bg-white text-center">
+                    <a href="{{ url_for('auction.index_view') }}" class="btn btn-sm btn-outline-primary">View All Auctions</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0">Recent Transactions</h4>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for transaction in recent_transactions %}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">{{ transaction.buyer.username }}</h6>
+                                    <small class="text-muted">{{ transaction.auction.title }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-{{ 'success' if transaction.status == 'completed' else 'warning' }}">
+                                        {{ transaction.amount|currency }}
+                                    </span>
+                                    <div>
+                                        <small class="text-muted">{{ transaction.created_at|format_datetime }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="card-footer bg-white text-center">
+                    <a href="{{ url_for('transaction.index_view') }}" class="btn btn-sm btn-outline-primary">View All Transactions</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
